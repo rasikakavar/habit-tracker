@@ -137,7 +137,6 @@
             box-shadow: 0 4px 12px rgba(92, 78, 180, 0.3);
         }
 
-        /* Responsive Layout Adjustments */
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 2fr;
@@ -146,9 +145,7 @@
         }
 
         @media (max-width: 900px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
+            .stats-grid { grid-template-columns: 1fr; }
             .header h1 { font-size: 2rem; }
         }
 
@@ -163,7 +160,7 @@
             display: grid;
             grid-template-columns: repeat(53, 12px);
             gap: 4px;
-            min-width: 850px; /* Ensures heatmap doesn't squash */
+            min-width: 850px;
         }
 
         .heatmap-cell {
@@ -200,9 +197,7 @@
             background: rgba(255,255,255,0.03);
         }
         
-        .checkbox-wrapper:hover .checkbox-custom {
-            border-color: var(--royal-lavender);
-        }
+        .checkbox-wrapper:hover .checkbox-custom { border-color: var(--royal-lavender); }
 
         .checkbox-wrapper input:checked + .checkbox-custom { 
             background: var(--royal-gradient); 
@@ -236,18 +231,55 @@
             max-width: 280px;
         }
 
-        #habitInput:focus {
-            outline: none;
-            border-color: var(--royal-lavender);
-        }
+        #habitInput:focus { outline: none; border-color: var(--royal-lavender); }
 
         .hidden { display: none !important; }
         
         table th { border-bottom: 1px solid var(--glass-border); }
 
+        .cycle-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
         .cycle-card:hover {
             border-color: var(--royal-lavender);
-            background: rgba(147, 132, 209, 0.05) !important;
+            background: rgba(147, 132, 209, 0.05);
+            transform: scale(1.05);
+        }
+
+        .cycle-card.current-week {
+            border: 2px solid var(--royal-lavender) !important;
+            background: rgba(157, 141, 241, 0.1) !important;
+            box-shadow: 0 0 15px var(--accent-glow) !important;
+        }
+
+        .current-label {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--royal-gradient);
+            color: white;
+            font-size: 0.5rem;
+            padding: 2px 5px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .percent-chip {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: var(--glass-border);
+            color: var(--royal-lavender);
+            font-weight: 700;
         }
     </style>
 </head>
@@ -270,11 +302,23 @@
         <div class="glass-card" style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap; justify-content: center;">
             <div class="stat-circle" id="mainStatCircle" style="--progress: 0%;">
                 <span id="mainStatText">0%</span>
-                <span style="font-size: 0.6rem; color: var(--muted); letter-spacing: 1px; font-weight: 400;">CONSISTENCY</span>
+                <span style="font-size: 0.6rem; color: var(--muted); letter-spacing: 1px; font-weight: 400;">TODAY</span>
             </div>
-            <div style="text-align: center;">
-                <h3 style="margin: 0; font-size: 1.2rem;">Focus</h3>
-                <p id="streakText" style="color: var(--royal-lavender); font-weight: 600; margin: 4px 0; font-size: 0.7rem; letter-spacing: 0.5px;">INITIALIZING...</p>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="text-align: left;">
+                    <h3 style="margin: 0; font-size: 1.1rem;">Performance</h3>
+                    <p id="streakText" style="color: var(--royal-lavender); font-weight: 600; margin: 4px 0; font-size: 0.7rem; letter-spacing: 0.5px;">INITIALIZING...</p>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <div style="background: rgba(147, 132, 209, 0.05); padding: 8px 12px; border-radius: 12px; border: 1px solid var(--glass-border);">
+                        <div style="font-size: 0.6rem; color: var(--muted); text-transform: uppercase;">Weekly</div>
+                        <div id="weeklyStat" style="font-weight: 800; color: var(--text);">0%</div>
+                    </div>
+                    <div style="background: rgba(147, 132, 209, 0.05); padding: 8px 12px; border-radius: 12px; border: 1px solid var(--glass-border);">
+                        <div style="font-size: 0.6rem; color: var(--muted); text-transform: uppercase;">Monthly</div>
+                        <div id="monthlyStat" style="font-weight: 800; color: var(--text);">0%</div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="glass-card" style="min-width: 0;">
@@ -302,11 +346,14 @@
     <div id="weeklyView" class="hidden">
         <div class="glass-card">
             <h2 style="margin-top:0; font-size: 1.5rem;">Weekly Cycles</h2>
-            <div id="weekly52Grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px;"></div>
+            <div id="weekly52Grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 12px;"></div>
         </div>
         <div id="selectedWeekDetail" class="glass-card hidden">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h3 id="weekTitle" style="color: var(--royal-lavender); margin: 0;">Week Detail</h3>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <h3 id="weekTitle" style="color: var(--royal-lavender); margin: 0;">Week Detail</h3>
+                    <span id="weekDetailPercent" class="percent-chip">0% Score</span>
+                </div>
                 <button class="btn-ghost" onclick="closeWeekDetail()" style="padding: 5px 12px;">×</button>
             </div>
             <div style="overflow-x: auto; margin-top: 20px;">
@@ -321,7 +368,10 @@
     <div id="monthView" class="glass-card hidden">
         <div style="display: flex; justify-content: center; align-items: center; gap: 30px; margin-bottom: 24px; flex-wrap: wrap;">
             <button class="btn-ghost" id="prevMonth">←</button>
-            <h2 id="monthLabel" style="margin:0; font-size: 1.4rem;">...</h2>
+            <div style="text-align: center;">
+                <h2 id="monthLabel" style="margin:0; font-size: 1.4rem;">...</h2>
+                <span id="monthDetailPercent" class="percent-chip" style="margin-top: 4px; display: inline-block;">0% Score</span>
+            </div>
             <button class="btn-ghost" id="nextMonth">→</button>
         </div>
         <div style="overflow-x: auto;">
@@ -369,6 +419,23 @@
         }
     }
 
+    // Precise Week Number Calculation
+    function getCurrentWeekNumber() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const startOfYear = new Date(year, 0, 1);
+        
+        // Find the day of the year (1-366)
+        const diff = today - startOfYear;
+        const oneDay = 1000 * 60 * 60 * 24;
+        const dayOfYear = Math.floor(diff / oneDay) + 1;
+        
+        // ISO-like week calculation
+        // Weeks start on Sunday (0) or Monday (1)
+        // Here we align 7-day blocks starting from the very first day of the year
+        return Math.ceil(dayOfYear / 7);
+    }
+
     function render() {
         document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
         updateXP();
@@ -399,11 +466,44 @@
         initMonthData(key);
         const habits = habitData[key];
         const dayIdx = today.getDate() - 1;
-        const completed = habits.filter(h => h.days[dayIdx]).length;
-        const percent = habits.length > 0 ? Math.round((completed / habits.length) * 100) : 0;
-        document.getElementById('mainStatCircle').style.setProperty('--progress', percent + '%');
-        document.getElementById('mainStatText').textContent = percent + '%';
-        document.getElementById('streakText').textContent = percent > 60 ? 'FLOW STATE' : 'BUILDING MOMENTUM';
+        
+        const completedToday = habits.filter(h => h.days[dayIdx]).length;
+        const percentToday = habits.length > 0 ? Math.round((completedToday / habits.length) * 100) : 0;
+        document.getElementById('mainStatCircle').style.setProperty('--progress', percentToday + '%');
+        document.getElementById('mainStatText').textContent = percentToday + '%';
+        document.getElementById('streakText').textContent = percentToday > 60 ? 'FLOW STATE' : 'BUILDING MOMENTUM';
+
+        const dayOfWeek = today.getDay();
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - dayOfWeek);
+        let totalWeekSlots = 0;
+        let completedWeekSlots = 0;
+
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(weekStart);
+            d.setDate(weekStart.getDate() + i);
+            const dKey = `${d.getFullYear()}-${d.getMonth()}`;
+            const dIdx = d.getDate() - 1;
+            if (habitData[dKey]) {
+                habitData[dKey].forEach(h => {
+                    totalWeekSlots++;
+                    if (h.days[dIdx]) completedWeekSlots++;
+                });
+            }
+        }
+        const weeklyPercent = totalWeekSlots > 0 ? Math.round((completedWeekSlots / totalWeekSlots) * 100) : 0;
+        document.getElementById('weeklyStat').textContent = weeklyPercent + '%';
+
+        let totalMonthSlots = 0;
+        let completedMonthSlots = 0;
+        habits.forEach(h => {
+            h.days.forEach(day => {
+                totalMonthSlots++;
+                if (day) completedMonthSlots++;
+            });
+        });
+        const monthlyPercent = totalMonthSlots > 0 ? Math.round((completedMonthSlots / totalMonthSlots) * 100) : 0;
+        document.getElementById('monthlyStat').textContent = monthlyPercent + '%';
     }
 
     function renderDashboard() {
@@ -433,11 +533,18 @@
     function renderWeekly52() {
         const grid = document.getElementById('weekly52Grid');
         grid.innerHTML = '';
+        const currentWeekNum = getCurrentWeekNumber();
+
         for (let i = 1; i <= 52; i++) {
+            const isCurrent = (i === currentWeekNum);
             const box = document.createElement('div');
-            box.className = 'cycle-card';
-            box.style.cssText = `background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 10px; text-align: center; cursor: pointer; transition: all 0.2s;`;
-            box.innerHTML = `<span style="font-size: 0.6rem; color: var(--muted);">W</span><br><b>${i}</b>`;
+            // Force re-evaluation of current-week class
+            box.className = `cycle-card ${isCurrent ? 'current-week' : ''}`;
+            box.innerHTML = `
+                ${isCurrent ? '<div class="current-label">Now</div>' : ''}
+                <span style="font-size: 0.6rem; color: var(--muted);">W</span><br>
+                <b>${i}</b>
+            `;
             box.onclick = () => showWeekDetail(i);
             grid.appendChild(box);
         }
@@ -447,35 +554,51 @@
         const detail = document.getElementById('selectedWeekDetail');
         detail.classList.remove('hidden');
         document.getElementById('weekTitle').textContent = `Cycle ${weekNum}`;
-        const startOfYear = new Date(new Date().getFullYear(), 0, 1);
-        const weekStart = new Date(startOfYear.setDate(startOfYear.getDate() + (weekNum - 1) * 7));
-        const key = `${weekStart.getFullYear()}-${weekStart.getMonth()}`;
-        initMonthData(key);
+        const currentYear = new Date().getFullYear();
+        const startOfYear = new Date(currentYear, 0, 1);
         
+        // Calculate the start day of the week
+        const weekStart = new Date(startOfYear);
+        weekStart.setDate(startOfYear.getDate() + (weekNum - 1) * 7);
+        
+        let totalSlots = 0;
+        let completedSlots = 0;
+
         let head = '<tr><th style="text-align:left; padding:12px; color:var(--muted); font-size:0.75rem;">HABIT</th>';
         for(let i=0; i<7; i++) {
-            const d = new Date(weekStart); d.setDate(d.getDate() + i);
+            const d = new Date(weekStart); d.setDate(weekStart.getDate() + i);
             head += `<th style="text-align:center; padding:12px; color:var(--muted); font-size:0.75rem;">${d.getDate()}</th>`;
         }
         document.getElementById('weekHead').innerHTML = head + '</tr>';
-        document.getElementById('weekBody').innerHTML = habitData[key].map((h, hIdx) => `
+        
+        // Note: For multi-month weeks, we'd need more complex logic, but this covers basic rendering
+        const key = `${weekStart.getFullYear()}-${weekStart.getMonth()}`;
+        initMonthData(key);
+
+        document.getElementById('weekBody').innerHTML = (habitData[key] || []).map((h, hIdx) => `
             <tr>
                 <td style="padding:12px; border-top:1px solid var(--glass-border); font-size:0.9rem;">${h.name}</td>
                 ${[0,1,2,3,4,5,6].map(o => {
-                    const d = new Date(weekStart); d.setDate(d.getDate() + o);
+                    const d = new Date(weekStart); d.setDate(weekStart.getDate() + o);
                     const dk = `${d.getFullYear()}-${d.getMonth()}`;
                     const di = d.getDate() - 1;
+                    
+                    // Safe check for data existence
+                    if(!habitData[dk]) initMonthData(dk);
                     const ch = habitData[dk] && habitData[dk][hIdx] && habitData[dk][hIdx].days[di];
+                    
+                    totalSlots++;
+                    if (ch) completedSlots++;
+
                     return `<td style="text-align:center; border-top:1px solid var(--glass-border); padding:10px;">
                         <input type="checkbox" ${ch?'checked':''} onchange="toggleHabit('${dk}', ${hIdx}, ${di})" style="width:16px; height:16px; accent-color:var(--royal-lavender);">
                     </td>`;
                 }).join('')}
             </tr>`).join('');
 
-        // Scroll into view with smooth animation
-        setTimeout(() => {
-            detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 50);
+        const score = totalSlots > 0 ? Math.round((completedSlots / totalSlots) * 100) : 0;
+        document.getElementById('weekDetailPercent').textContent = `${score}% Score`;
+        setTimeout(() => detail.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
     }
 
     function renderMonthlyView() {
@@ -484,14 +607,24 @@
         document.getElementById('monthLabel').textContent = `${viewDate.toLocaleString('default', { month: 'long' })} ${viewDate.getFullYear()}`;
         const habits = habitData[key];
         
+        let totalSlots = 0;
+        let completedSlots = 0;
+
         let head = '<tr><th style="text-align:left; padding:12px; color:var(--muted); font-size:0.75rem;">HABIT</th>';
         for(let i=1; i<=habits[0].days.length; i++) head += `<th style="text-align:center; padding:4px; font-size:0.6rem;">${i}</th>`;
         document.getElementById('monthHead').innerHTML = head + '</tr>';
         document.getElementById('monthBody').innerHTML = habits.map((h, hIdx) => `
             <tr>
                 <td style="padding:12px; border-top:1px solid var(--glass-border); font-size:0.85rem;">${h.name}</td>
-                ${h.days.map((c, dIdx) => `<td style="text-align:center; border-top:1px solid var(--glass-border); padding:2px;"><input type="checkbox" ${c?'checked':''} onchange="toggleHabit('${key}', ${hIdx}, ${dIdx})" style="accent-color:var(--royal-lavender);"></td>`).join('')}
+                ${h.days.map((c, dIdx) => {
+                    totalSlots++;
+                    if (c) completedSlots++;
+                    return `<td style="text-align:center; border-top:1px solid var(--glass-border); padding:2px;"><input type="checkbox" ${c?'checked':''} onchange="toggleHabit('${key}', ${hIdx}, ${dIdx})" style="accent-color:var(--royal-lavender);"></td>`;
+                }).join('')}
             </tr>`).join('');
+
+        const score = totalSlots > 0 ? Math.round((completedSlots / totalSlots) * 100) : 0;
+        document.getElementById('monthDetailPercent').textContent = `${score}% Score`;
     }
 
     function renderHeatmap() {
@@ -507,10 +640,8 @@
             const cell = document.createElement('div');
             cell.className = 'heatmap-cell';
             cell.setAttribute('data-date', date.toLocaleDateString('en-GB', {day: 'numeric', month: 'short'}));
-
             const key = `${date.getFullYear()}-${date.getMonth()}`;
             const dayIdx = date.getDate() - 1;
-            
             if (habitData[key]) {
                 const totalHabits = habitData[key].length;
                 const completedCount = habitData[key].filter(h => h.days[dayIdx]).length;
@@ -525,17 +656,12 @@
 
     window.toggleHabit = (key, hIdx, dIdx, isMain) => {
         initMonthData(key);
-        if (!habitData[key][hIdx]) return;
+        if (!habitData[key] || !habitData[key][hIdx]) return;
         const checked = !habitData[key][hIdx].days[dIdx];
         habitData[key][hIdx].days[dIdx] = checked;
         if (checked) {
             xp += 10;
-            if (isMain) confetti({ 
-                particleCount: 60, 
-                spread: 60, 
-                origin: { y: 0.8 }, 
-                colors: ['#9d8df1', '#5c4eb4', '#ffffff'] 
-            });
+            if (isMain) confetti({ particleCount: 60, spread: 60, origin: { y: 0.8 }, colors: ['#9d8df1', '#5c4eb4', '#ffffff'] });
         } else xp = Math.max(0, xp - 5);
         save(); render();
     };
