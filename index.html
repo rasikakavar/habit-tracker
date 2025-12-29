@@ -77,6 +77,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 40px;
+            flex-wrap: wrap;
+            gap: 20px;
         }
 
         h1 { 
@@ -135,10 +137,39 @@
             box-shadow: 0 4px 12px rgba(92, 78, 180, 0.3);
         }
 
+        /* Responsive Layout Adjustments */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 900px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .header h1 { font-size: 2rem; }
+        }
+
+        .heatmap-container {
+            overflow-x: auto;
+            padding-bottom: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--royal-lavender) transparent;
+        }
+
+        #heatmap {
+            display: grid;
+            grid-template-columns: repeat(53, 12px);
+            gap: 4px;
+            min-width: 850px; /* Ensures heatmap doesn't squash */
+        }
+
         .heatmap-cell {
             aspect-ratio: 1;
             background: rgba(147, 132, 209, 0.1);
-            border-radius: 3px;
+            border-radius: 2px;
             position: relative;
         }
         .heatmap-cell.active { 
@@ -192,6 +223,7 @@
                         conic-gradient(var(--royal-lavender) var(--progress), var(--glass-border) 0%);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             font-weight: 800; font-size: 1.6rem;
+            flex-shrink: 0;
         }
 
         #habitInput {
@@ -200,7 +232,8 @@
             border-radius: 14px;
             padding: 12px 20px;
             color: var(--text);
-            width: 280px;
+            width: 100%;
+            max-width: 280px;
         }
 
         #habitInput:focus {
@@ -233,36 +266,38 @@
         </div>
     </header>
 
-    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px; margin-bottom: 32px;">
-        <div class="glass-card" style="display: flex; align-items: center; gap: 24px;">
+    <div class="stats-grid">
+        <div class="glass-card" style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap; justify-content: center;">
             <div class="stat-circle" id="mainStatCircle" style="--progress: 0%;">
                 <span id="mainStatText">0%</span>
                 <span style="font-size: 0.6rem; color: var(--muted); letter-spacing: 1px; font-weight: 400;">CONSISTENCY</span>
             </div>
-            <div>
+            <div style="text-align: center;">
                 <h3 style="margin: 0; font-size: 1.2rem;">Focus</h3>
                 <p id="streakText" style="color: var(--royal-lavender); font-weight: 600; margin: 4px 0; font-size: 0.7rem; letter-spacing: 0.5px;">INITIALIZING...</p>
             </div>
         </div>
-        <div class="glass-card">
+        <div class="glass-card" style="min-width: 0;">
             <h4 style="margin: 0 0 15px 0; font-weight: 600; color: var(--muted); font-size: 0.75rem; letter-spacing: 1px;">ACTIVITY ARCHIVE (PAST YEAR)</h4>
-            <div id="heatmap" style="display: grid; grid-template-columns: repeat(53, 1fr); gap: 3px;"></div>
+            <div class="heatmap-container">
+                <div id="heatmap"></div>
+            </div>
         </div>
     </div>
 
     <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px;">
-        <div style="display: flex; gap: 8px; background: var(--glass); padding: 4px; border-radius: 16px; border: 1px solid var(--glass-border);">
+        <div style="display: flex; gap: 8px; background: var(--glass); padding: 4px; border-radius: 16px; border: 1px solid var(--glass-border); flex-wrap: wrap;">
             <button class="btn-ghost active-view" id="viewDash" style="padding: 8px 16px; font-size: 0.9rem;">Board</button>
             <button class="btn-ghost" id="viewWeek" style="padding: 8px 16px; font-size: 0.9rem;">Weekly</button>
             <button class="btn-ghost" id="viewMonth" style="padding: 8px 16px; font-size: 0.9rem;">Monthly</button>
         </div>
-        <div style="display: flex; gap: 10px;">
+        <div style="display: flex; gap: 10px; flex-grow: 1; max-width: 400px; width: 100%;">
             <input id="habitInput" type="text" placeholder="Add new ritual...">
             <button class="btn-primary" id="addHabitBtn">Add ritual</button>
         </div>
     </div>
 
-    <div id="dashboardView" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;"></div>
+    <div id="dashboardView" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;"></div>
 
     <div id="weeklyView" class="hidden">
         <div class="glass-card">
@@ -275,7 +310,7 @@
                 <button class="btn-ghost" onclick="closeWeekDetail()" style="padding: 5px 12px;">×</button>
             </div>
             <div style="overflow-x: auto; margin-top: 20px;">
-                <table style="width: 100%; border-collapse: collapse;">
+                <table style="width: 100%; border-collapse: collapse; min-width: 500px;">
                     <thead id="weekHead"></thead>
                     <tbody id="weekBody"></tbody>
                 </table>
@@ -284,13 +319,13 @@
     </div>
 
     <div id="monthView" class="glass-card hidden">
-        <div style="display: flex; justify-content: center; align-items: center; gap: 30px; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: center; align-items: center; gap: 30px; margin-bottom: 24px; flex-wrap: wrap;">
             <button class="btn-ghost" id="prevMonth">←</button>
             <h2 id="monthLabel" style="margin:0; font-size: 1.4rem;">...</h2>
             <button class="btn-ghost" id="nextMonth">→</button>
         </div>
         <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse;">
+            <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
                 <thead id="monthHead"></thead>
                 <tbody id="monthBody"></tbody>
             </table>
